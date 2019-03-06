@@ -11,6 +11,8 @@ int main() {
         /* Settings */
         .compression = uWS::SHARED_COMPRESSOR,
         .maxPayloadLength = 16 * 1024,
+        .idleTimeout = 120,
+        .supportSubprotocol = uWS::SecWebSocketProtocol({"rtmp","rtp"}),
         /* Handlers */
         .open = [](auto *ws, auto *req) {
 
