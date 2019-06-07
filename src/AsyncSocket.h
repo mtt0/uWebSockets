@@ -107,6 +107,10 @@ public:
             /* On failure return, otherwise continue down the function */
             if (written < asyncSocketData->buffer.length()) {
 
+                /* Unexpected error occured such as the socket is closed suddenly */
+                if (written == 0)
+                    return {0, true};
+
                 /* Update buffering (todo: we can do better here if we keep track of what happens to this guy later on) */
                 asyncSocketData->buffer = asyncSocketData->buffer.substr(written);
 
