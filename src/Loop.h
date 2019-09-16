@@ -1,4 +1,4 @@
-/*
+﻿/*
  * Authored by Alex Hultman, 2018-2019.
  * Intellectual property of third-party.
 
@@ -82,30 +82,37 @@ private:
         return ((Loop *) us_create_loop(defaultLoop, wakeupCb, preCb, postCb, sizeof(LoopData)))->init();
     }
 
+    struct LoopCleaner {
+        ~LoopCleaner() {
+            if (loop && cleanMe)
+                loop->free();
+        }
+        Loop* loop = nullptr;
+        bool cleanMe = false;
+    };
+
 public:
     /* Returns the default loop if called from one thread, or a dedicated per-thread loop if called from multiple threads */
     static Loop *defaultLoop() {
         /* Deliver and attach the default loop to the first thread who calls us */
-        static thread_local bool ownsDefaultLoop;
+        static thread_local bool ownsDefaultLoop(false);
         static Loop *defaultLoop;
         if (!defaultLoop) {
             ownsDefaultLoop = true;
             defaultLoop = create(true);
-            std::atexit([]() {
-                Loop::defaultLoop()->free();
-            });
             return defaultLoop;
         } else if (ownsDefaultLoop) {
             return defaultLoop;
         }
 
         /* Other threads get their non-default loops lazily created */
-        static thread_local Loop *threadLocalLoop;
-        if (!threadLocalLoop) {
-            threadLocalLoop = create(false);
-            return threadLocalLoop;
+        static thread_local LoopCleaner lazyLoop;
+        if (!lazyLoop.loop) {
+            lazyLoop.loop = create(false);
+            lazyLoop.cleanMe = true;
+            return lazyLoop.loop;
         }
-        return threadLocalLoop;
+        return lazyLoop.loop;
     }
 
     /* Freeing the default loop should be done once */
