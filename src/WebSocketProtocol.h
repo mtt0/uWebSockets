@@ -178,8 +178,10 @@ enum {
 
 template <bool isServer>
 static inline size_t formatMessage(char *dst, const char *src, size_t length, OpCode opCode, size_t reportedLength, bool compressed) {
-    size_t messageLength;
-    size_t headerLength;
+    size_t messageLength = 0;
+    size_t headerLength = 0;
+    if (!dst || !src)
+        return messageLength;
     if (reportedLength < 126) {
         headerLength = 2;
         dst[1] = reportedLength;

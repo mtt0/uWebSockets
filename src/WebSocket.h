@@ -76,7 +76,7 @@ public:
         size_t messageFrameSize = protocol::messageFrameSize(message.length());
         auto[sendBuffer, requiresWrite] = Super::getSendBuffer(messageFrameSize);
         protocol::formatMessage<isServer>(sendBuffer, message.data(), message.length(), opCode, message.length(), compress);
-        if (requiresWrite) {
+        if (sendBuffer && requiresWrite) {
             auto[written, failed] = Super::write(sendBuffer, messageFrameSize);
 
             /* For now, we are slow here (fix!) */
